@@ -1,6 +1,5 @@
 FROM node:22-bookworm-slim
 
-# Instalar ferramentas necessárias para conversão de mídia
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     webp \
@@ -8,23 +7,20 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de dependências
+# Copiar dependências e esquema Prisma
 COPY package*.json ./
+COPY prisma ./prisma
 
-# Instalar dependências do Node.js
+# Instalar dependências
 RUN npm install --no-audit --no-fund
 
-# Copiar o restante do projeto
+# Copiar o código
 COPY . .
 
-# Compilar o projeto
+# Compilar aplicação
 RUN npm run build
 
-# Porta do painel administrativo
-EXPOSE 3333
-
-# Iniciar o bot
-CMD ["npm", "start"]
+# Preparar banco de dados e iniciar o bot
+CMD ["sh", "-c", "npx prisma db push && npm start"]
